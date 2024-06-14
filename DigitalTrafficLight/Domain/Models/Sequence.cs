@@ -1,9 +1,9 @@
 namespace Domain.Models;
 
-public class Sequence
+public class SequenceModel
 {
     public Guid Id { get; } 
-    public Sequence(Guid id)
+    public SequenceModel(Guid id)
     {
         Id = id;
     }
