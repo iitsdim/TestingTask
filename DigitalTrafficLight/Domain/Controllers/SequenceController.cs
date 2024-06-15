@@ -27,15 +27,19 @@ public class SequenceController : ControllerBase
         return CreatedAtAction(
             actionName: nameof(GetSequence),
             routeValues: new { id=sequence.Id },
-            value: response
+            value: new {status="ok", response}
         );
     }
     [HttpGet("/sequence/{id:guid}")]
     public IActionResult GetSequence(Guid id)
     {
-        SequenceModel sequence = _sequenceService.GetSequence(id);
-        var response = new SequenceResponse(sequence.Id);
-       return Ok(response);
+        try {
+            SequenceModel sequence = _sequenceService.GetSequence(id);
+            var response = new SequenceResponse(sequence.Id);
+            return Ok(new {status="ok", response});
+        } catch (Exception ex) {
+            return BadRequest(new { status = "error", Msg = ex.Message });
+        }
     }
 
     [HttpPost("observation/add")]
@@ -43,21 +47,22 @@ public class SequenceController : ControllerBase
     {
         try
         {
-            string sequenceId = request.Sequence;
+            Guid sequenceId = request.Sequence;
             Observation observation = request.Observation;
-            var response = new ObservationResponse([], [sequenceId, observation.Color]);
-            return Ok(response);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { Msg = ex.Message });
+
+            SequenceModel sequence = _sequenceService.AddObservation(sequenceId, observation);
+
+            var response = new ObservationResponse(sequence.Start, sequence.Missing);
+            return Ok(new {status="ok", response});
+        } catch (Exception ex) {
+            return BadRequest(new { status = "error", Msg = ex.Message });
         }   
-    }
+    }   
 
     [HttpGet("/clear")]
     public IActionResult Clear()
     {
         _sequenceService.Clear();
-        return Ok(new {response = "ok"});
+        return Ok(new {status="ok", response = "ok"});
     }
 }

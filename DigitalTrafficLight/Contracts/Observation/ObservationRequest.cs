@@ -5,4 +5,4 @@ public record Observation(
     List<string>? Numbers);
 public record ObservationRequest(
     Observation Observation,
-    string Sequence);
+    Guid Sequence);
