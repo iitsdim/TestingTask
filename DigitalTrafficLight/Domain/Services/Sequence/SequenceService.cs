@@ -6,7 +6,7 @@ public class SequenceService : ISequenceService
 {
     private static readonly Dictionary<Guid, SequenceModel> _sequenceMap = new();
 
-    public SequenceModel AddObservation(Guid Id, Observation observation)
+    public ObservationResponse AddObservation(Guid Id, Observation observation)
     {
         var sequence = GetSequence(Id);
         if (sequence.Color.ToLower() == "red") {
@@ -15,23 +15,39 @@ public class SequenceService : ISequenceService
         if (sequence.ObservationCount == 0 && observation.Color.ToLower() == "red") {
             throw new Exception("There isn't enough data");
         }
-        
         sequence.Color = observation.Color;
-        // return sequence;
         if (observation.Color.ToLower() == "red") {
-            var list2 = new List<int> { sequence.ObservationCount };
-            sequence.Start = list2.Intersect(sequence.Start).ToList();
+            var possibleNumbers = new List<int> { sequence.ObservationCount };
+            sequence.Start = possibleNumbers.Intersect(sequence.Start).ToList();
         } else {
             if (observation.Numbers == null) {
                 throw new Exception("Invalid numbers list");
             }
-            var list2 = GeneratePossibleNumbers(observation.Numbers, sequence.ObservationCount);
-            sequence.Start = list2.Intersect(sequence.Start).ToList();
+            List<int> numbers = StringsToIntegers(observation.Numbers);
+            var possibleNumbers = GeneratePossibleNumbers(numbers, sequence.ObservationCount);
+            sequence.Start = possibleNumbers.Intersect(sequence.Start).ToList();
+            
+            int andAllFirstDigits = sequence.Start.Aggregate(127, (acc, c) =>
+            {
+                int x = c - sequence.ObservationCount;
+                int f = x / 10;
+                return acc & digitEncoding[f];
+            });
+
+            int andAllSecondDigits = sequence.Start.Aggregate(127, (acc, c) =>
+            {
+                int x = c - sequence.ObservationCount;
+                int s = x % 10;
+                return acc & digitEncoding[s];
+            });
+
+            sequence.Missing[0] |= numbers[0] ^ andAllFirstDigits;
+            sequence.Missing[1] |= numbers[1] ^ andAllSecondDigits;
         }
+
         sequence.ObservationCount += 1;
-        
         ModifySequence(sequence);
-        return sequence;
+        return new ObservationResponse(sequence.Start, IntegersToBinaryStrings(sequence.Missing));
     }
 
     public void Clear()
@@ -57,51 +73,38 @@ public class SequenceService : ISequenceService
         return _sequenceMap[id];
     }
 
-    static Dictionary<int, string> digitEncoding = new Dictionary<int, string>
+
+    //TODO move all the below to Utils
+
+    static Dictionary<int, int> digitEncoding = new Dictionary<int, int>
     {
-        { 0, "1110111" },
-        { 1, "0010010" },
-        { 2, "1011101" },
-        { 3, "1011011" },
-        { 4, "0111010" },
-        { 5, "1101011" },
-        { 6, "1101111" },
-        { 7, "1010010" },
-        { 8, "1111111" },
-        { 9, "1111011" }
+        { 0, 119 },
+        { 1, 18 },
+        { 2, 93 },
+        { 3, 91 },
+        { 4, 58 },
+        { 5, 107 },
+        { 6, 111 },
+        { 7, 82 },
+        { 8, 127 },
+        { 9, 123 }
     };
 
-    static List<int> PossibleDigits(string observed)
+    static List<int> PossibleDigits(int observed)
     {
         List<int> possible = digitEncoding
-            .Where(pair => Matches(observed, pair.Value))
+            .Where(pair => (observed & pair.Value) == observed)
             .Select(pair => pair.Key)
             .ToList();
 
         return possible;
     }
 
-    static bool Matches(string observed, string encoded)
+
+
+    static List<int> GeneratePossibleNumbers(List<int> numbers, int step)
     {
-        for (int i = 0; i < observed.Length; i++)
-        {
-            char o = observed[i];
-            char e = encoded[i];
-
-            if (o == '1' && e == '0')
-            {
-                return false; // If observed has '1' where encoded has '0', it's not a match
-            }
-        }
-        
-        return true; // All comparisons passed, it's a match
-    }
-
-
-
-    static List<int> GeneratePossibleNumbers(List<string> numbers, int step)
-    {
-        if (numbers == null || numbers.Count != 2)
+        if (numbers.Count != 2)
         {
             throw new Exception("Invalid numbers list. It must contain exactly two strings.");
         }
@@ -115,5 +118,13 @@ public class SequenceService : ISequenceService
         return possibleValues.ToList();
     }
 
-
+    static List<int> StringsToIntegers(List<string> strings)
+    {
+        return strings.Select(binaryString => Convert.ToInt32(binaryString, 2)).ToList();
+    }
+    
+    static List<string> IntegersToBinaryStrings(List<int> numbers)
+    {
+        return numbers.Select(number => Convert.ToString(number, 2).PadLeft(7, '0')).ToList();
+    }
 }

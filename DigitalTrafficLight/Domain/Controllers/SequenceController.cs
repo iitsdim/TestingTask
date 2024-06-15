@@ -50,9 +50,7 @@ public class SequenceController : ControllerBase
             Guid sequenceId = request.Sequence;
             Observation observation = request.Observation;
 
-            SequenceModel sequence = _sequenceService.AddObservation(sequenceId, observation);
-
-            var response = new ObservationResponse(sequence.Start, sequence.Missing);
+            var response = _sequenceService.AddObservation(sequenceId, observation);
             return Ok(new {status="ok", response});
         } catch (Exception ex) {
             return BadRequest(new { status = "error", Msg = ex.Message });
