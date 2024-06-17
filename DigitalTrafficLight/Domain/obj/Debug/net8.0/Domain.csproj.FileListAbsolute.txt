@@ -34,3 +34,5 @@
 /Users/dimmyt/work/TestingTask/DigitalTrafficLight/Domain/obj/Debug/net8.0/Domain.pdb
 /Users/dimmyt/work/TestingTask/DigitalTrafficLight/Domain/obj/Debug/net8.0/Domain.genruntimeconfig.cache
 /Users/dimmyt/work/TestingTask/DigitalTrafficLight/Domain/obj/Debug/net8.0/ref/Domain.dll
+/Users/dimmyt/work/TestingTask/DigitalTrafficLight/Domain/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.dll
+/Users/dimmyt/work/TestingTask/DigitalTrafficLight/Domain/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
