@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  db:
+    image: postgres
+    container_name: traffic_light_postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: 1
+    volumes:
+      - traffic_light_pg:/var/lib/postgresql/data
+volumes:
+  traffic_light_pg:

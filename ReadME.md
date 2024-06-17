@@ -39,3 +39,8 @@ returns ok if succed
     "response": "ok"
 }
 ```
+
+```
+docker exec -it 8d2c4b16c576 bash 
+psql postgres -U myuser
+```
