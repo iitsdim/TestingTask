@@ -54,6 +54,11 @@ returns ok if succed
     "response": "ok"
 }
 ```
+#### Run Tests
+Run following command in DigitalTrafficLight directory
+```
+dotnet test tests
+```
 #### Docker containers
 To check DB you can enter inside psql container in docker
 ```
