@@ -1,5 +1,20 @@
 # Digital Traffic Light, Testing Task
 
+#### Run the App:
+first in directory DigitalTrafficLight, create DB
+```
+docker compose up -d
+```
+Then apply all the migrations
+```
+dotnet ef --project Domain database update
+```
+Then you free to start the project with
+```
+dotnet run --project Domain
+```
+
+
 #### Api:
 APIs list with example responses
 ##### Create Sequence 
@@ -39,7 +54,8 @@ returns ok if succed
     "response": "ok"
 }
 ```
-
+#### Docker containers
+To check DB you can enter inside psql container in docker
 ```
 docker exec -it 8d2c4b16c576 bash 
 psql postgres -U myuser
