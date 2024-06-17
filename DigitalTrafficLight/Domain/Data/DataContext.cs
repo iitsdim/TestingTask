@@ -9,5 +9,5 @@ public class DataContext : DbContext {
 
     }
 
-    public DbSet<SequenceEntity> Sequences { get; }
+    public DbSet<SequenceEntity> Sequences { get; set;}
 }

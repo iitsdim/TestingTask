@@ -1,10 +1,16 @@
 using Contracts.Observation;
+using Domain.Data;
+using Domain.Entities;
 using Domain.Models;
 namespace Domain.Services.Sequence;
 
 public class SequenceService : ISequenceService 
 {
     private static readonly Dictionary<Guid, SequenceModel> _sequenceMap = new();
+    private readonly DataContext _context;
+    public SequenceService(DataContext context) {
+        _context = context;
+    }
 
     public ObservationResponse AddObservation(Guid Id, Observation observation)
     {
@@ -55,22 +61,82 @@ public class SequenceService : ISequenceService
         _sequenceMap.Clear();
     }
 
-    public void CreateSequence(SequenceModel sequence) 
+    public async void CreateSequence(SequenceModel sequence) 
     {
+        if (sequence == null)
+        {
+            throw new ArgumentNullException(nameof(sequence));
+        }
+
+        if (sequence.Start == null)
+        {
+            throw new ArgumentNullException(nameof(sequence.Start));
+        }
+
+        if (sequence.Missing == null)
+        {
+            throw new ArgumentNullException(nameof(sequence.Missing));
+        }
+
+        if (sequence.Color == null)
+        {
+            throw new ArgumentNullException(nameof(sequence.Color));
+        }
+        if (_context == null)
+    {
+        throw new InvalidOperationException("Database context is not initialized.");
+    }
+
+        if (_context.Sequences == null)
+        {
+            throw new InvalidOperationException("Sequences DbSet is not initialized.");
+        }
+
+        var entity = new SequenceEntity
+        {
+            Id = sequence.Id,
+            ObservationCount = sequence.ObservationCount,
+            Start = sequence.Start,
+            Missing = sequence.Missing,
+            Color = sequence.Color
+        };
+
+        _context.Sequences.Add(entity);
+        _context.SaveChanges();
         _sequenceMap.Add(sequence.Id, sequence);
     }
 
     public void ModifySequence(SequenceModel sequence) {
+        var sequenceEntity = _context.Sequences.Find(sequence.Id);
+        if (sequenceEntity is null)
+        {
+            throw new KeyNotFoundException("The sequence isn't found");
+        }
+        sequenceEntity.Color = sequence.Color;
+        sequenceEntity.ObservationCount = sequence.ObservationCount;
+        sequenceEntity.Start = sequence.Start;
+        sequenceEntity.Missing = sequence.Missing;
+        _context.SaveChanges();
+
         _sequenceMap[sequence.Id] = sequence;
     }
 
     public SequenceModel GetSequence(Guid id)
     {
-        if (!_sequenceMap.ContainsKey(id))
+        var sequence = _context.Sequences.Find(id);
+        if (sequence is null)
         {
             throw new KeyNotFoundException("The sequence isn't found");
         }
-        return _sequenceMap[id];
+        
+        return new SequenceModel()
+        {
+            Id = sequence.Id,
+            ObservationCount = sequence.ObservationCount,
+            Start = sequence.Start,
+            Missing = sequence.Missing,
+            Color = sequence.Color
+        };
     }
 
 
